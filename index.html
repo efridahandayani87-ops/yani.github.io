@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Maya Laju Reaksi - SMA Fase F</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+        
+        body {
+            background-color: #0b132b;
+            color: #f1f5f9;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar for inner tab contents if needed */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c2541;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a506b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4ea8de;
+        }
+
+        /* Canvas borders and containers */
+        .viewport-box {
+            background: #1c2541;
+            border: 1px solid #3a506b;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .tab-btn {
+            transition: all 0.25s ease;
+        }
+        .tab-btn.active {
+            background-color: #4ea8de;
+            color: #0b132b;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(78, 168, 222, 0.5);
+        }
+
+        .radio-chip {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .radio-chip.active {
+            background-color: #4ea8de;
+            color: #0b132b;
+            font-weight: 700;
+            border-color: #5bc0be;
+        }
+
+        /* Glowing Effects */
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(91, 192, 190, 0.4);
+        }
+
+        /* Pulse animation for active simulation indicator */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .anim-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen w-screen overflow-hidden bg-[#0b132b] text-slate-100">
+
+    <!-- HEADER NAVBAR -->
+    <header class="h-[60px] bg-[#1c2541] border-b border-[#3a506b] px-5 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0077b6] to-[#5bc0be] flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                <i class="fa-solid fa-flask"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-wide text-white leading-tight flex items-center gap-2">
+                    LAB MAYA LAJU REAKSI
+                    <span class="text-xs bg-[#5bc0be]/20 text-[#5bc0be] border border-[#5bc0be]/40 px-2 py-0.5 rounded-full font-semibold">SMA FASE F</span>
+                </h1>
+                <p class="text-xs text-slate-400">Model Pembelajaran Tumbukan Mikroskopis & Makroskopis</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1.5 bg-[#0b132b] p-1.5 rounded-xl border border-[#3a506b]">
+            <button onclick="switchTab('teori')" id="nav-teori" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> Teori
+            </button>
+            <button onclick="switchTab('prosedur')" id="nav-prosedur" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Prosedur
+            </button>
+            <button onclick="switchTab('simulasi')" id="nav-simulasi" class="tab-btn active px-4 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-vial-virus"></i> Simulasi
+            </button>
+            <button onclick="switchTab('lkpd')" id="nav-lkpd" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-pen"></i> LKPD & Kuis
+            </button>
+            <button onclick="switchTab('pengembang')" id="nav-pengembang" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-gear"></i> Pengembang
+            </button>
+        </nav>
+
+        <!-- Sound & Fullscreen Controls -->
+        <div class="flex items-center gap-2">
+            <button onclick="toggleAudio()" id="audio-btn" class="w-9 h-9 rounded-lg bg-[#0b132b] border border-[#3a506b] text-slate-300 hover:text-white flex items-center justify-center transition" title="Mute/Unmute Suara">
+                <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+            </button>
+            <button onclick="toggleFullScreen()" class="w-9 h-9 rounded-lg bg-[#0b132b] border border-[#3a506b] text-slate-300 hover:text-white flex items-center justify-center transition" title="Layar Penuh">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT VIEWPORT CONTAINER -->
+    <main class="flex-1 relative overflow-hidden p-3 bg-[#0b132b]">
+
+        <!-- TAB 1: TEORI -->
+        <section id="tab-teori" class="tab-content hidden w-full h-full overflow-y-auto pr-2">
+            <div class="max-w-5xl mx-auto space-y-5 py-2">
+                <div class="bg-[#1c2541] border border-[#3a506b] rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-2xl font-bold text-[#4ea8de] mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-atom"></i> Teori Laju Reaksi & Teori Tumbukan
+                    </h2>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        <b>Laju reaksi</b> didefinisikan sebagai perubahan konsentrasi pereaksi (reaktan) atau hasil reaksi (produk) per satuan waktu.
+                        Dalam eksperimen ini, kita mengamati reaksi antara pita logam Magnesium (Mg) dengan larutan Asam Klorida (HCl).
+                    </p>
+                    
+                    <!-- Chemical Equation Display -->
+                    <div class="bg-[#0b132b] border-l-4 border-[#5bc0be] p-4 rounded-r-xl mb-6 font-mono text-lg text-emerald-400 font-bold">
+                        Persamaan Reaksi: Mg(s) + 2HCl(aq) &rarr; MgCl<sub>2</sub>(aq) + H<sub>2</sub>(g)
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-white mb-3">4 Faktor Utama yang Mempengaruhi Laju Reaksi:</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-[#0b132b]/60 p-4 rounded-xl border border-[#3a506b]">
+                            <h4 class="font-bold text-[#5bc0be] mb-1"><i class="fa-solid fa-temperature-high"></i> 1. Suhu (&Delta;T)</h4>
+                            <p class="text-xs text-slate-300">Peningkatan suhu meningkatkan energi kinetik rata-rata partikel. Partikel bergerak lebih cepat sehingga frekuensi tumbukan efektif yang melampaui Energi Aktivasi (E<sub>a</sub>) meningkat tajam.</p>
+                        </div>
+                        <div class="bg-[#0b132b]/60 p-4 rounded-xl border border-[#3a506b]">
+                            <h4 class="font-bold text-[#5bc0be] mb-1"><i class="fa-solid fa-flask"></i> 2. Konsentrasi Pereaksi [HCl]</h4>
+                            <p class="text-xs text-slate-300">Meningkatkan konsentrasi menambah jumlah partikel ion H<sup>+</sup> per satuan volume. Kerapatan partikel yang lebih tinggi memperbesar peluang terjadinya tumbukan antar reaktan.</p>
+                        </div>
+                        <div class="bg-[#0b132b]/60 p-4 rounded-xl border border-[#3a506b]">
+                            <h4 class="font-bold text-[#5bc0be] mb-1"><i class="fa-solid fa-[#5bc0be] fa-cubes"></i> 3. Luas Permukaan Sentuh</h4>
+                            <p class="text-xs text-slate-300">Bentuk serbuk memiliki total luas bidang sentuh yang jauh lebih luas dibandingkan kepingan utuh. Bidang sentuh yang lebih besar memberikan area orientasi tumbukan yang lebih banyak.</p>
+                        </div>
+                        <div class="bg-[#0b132b]/60 p-4 rounded-xl border border-[#3a506b]">
+                            <h4 class="font-bold text-[#5bc0be] mb-1"><i class="fa-solid fa-bolt"></i> 4. Katalisator</h4>
+                            <p class="text-xs text-slate-300">Katalis menurunkan tingkat Energi Aktivasi (E<sub>a</sub>) dengan menyediakan mekanisme atau jalur reaksi alternatif, sehingga lebih banyak partikel yang mampu bertumbukan secara efektif.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PROSEDUR -->
+        <section id="tab-prosedur" class="tab-content hidden w-full h-full overflow-y-auto pr-2">
+            <div class="max-w-5xl mx-auto space-y-5 py-2">
+                <div class="bg-[#1c2541] border border-[#3a506b] rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-2xl font-bold text-[#4ea8de] mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i> Prosedur Langkah Kerja Eksperimen Virtual
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-3 bg-[#0b132b]/50 rounded-xl border border-[#3a506b]">
+                            <span class="w-8 h-8 rounded-full bg-[#4ea8de] text-[#0b132b] font-bold flex items-center justify-center shrink-0">1</span>
+                            <div>
+                                <h4 class="font-bold text-white">Pilih Tab Simulasi</h4>
+                                <p class="text-xs text-slate-300">Buka menu <b>Simulasi</b> pada navigasi atas untuk menampilkan ruang laboratorium virtual 2D.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-3 bg-[#0b132b]/50 rounded-xl border border-[#3a506b]">
+                            <span class="w-8 h-8 rounded-full bg-[#4ea8de] text-[#0b132b] font-bold flex items-center justify-center shrink-0">2</span>
+                            <div>
+                                <h4 class="font-bold text-white">Atur Variabel Bebas pada Panel Kontrol</h4>
+                                <p class="text-xs text-slate-300">Gunakan slider dan tombol opsi di panel kanan untuk mengatur <b>Suhu (20°C - 80°C)</b>, <b>Konsentrasi HCl (0.1M - 2.0M)</b>, <b>Bentuk Mg (Kepingan / Serbuk)</b>, serta status <b>Katalis (Aktif / Tanpa Katalis)</b>.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-3 bg-[#0b132b]/50 rounded-xl border border-[#3a506b]">
+                            <span class="w-8 h-8 rounded-full bg-[#4ea8de] text-[#0b132b] font-bold flex items-center justify-center shrink-0">3</span>
+                            <div>
+                                <h4 class="font-bold text-white">Jalankan Reaksi Simulasikan Tumbukan</h4>
+                                <p class="text-xs text-slate-300">Tekan tombol hijau <b>Mulai Reaksi</b>. Amati gerakan partikel ion H<sup>+</sup> yang menumbuk bidang Mg, percikan tumbukan efektif (E<sub>a</sub>), gelembung gas H<sub>2</sub> di tabung reaksi, dan pergerakan kurva grafik V(H<sub>2</sub>) vs Waktu.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-3 bg-[#0b132b]/50 rounded-xl border border-[#3a506b]">
+                            <span class="w-8 h-8 rounded-full bg-[#4ea8de] text-[#0b132b] font-bold flex items-center justify-center shrink-0">4</span>
+                            <div>
+                                <h4 class="font-bold text-white">Catat Hasil Eksperimen</h4>
+                                <p class="text-xs text-slate-300">Ketika grafik telah mendatar (reaksi tuntas), tekan tombol <b>Simpan ke LKPD</b>. Data eksperimen akan otomatis tercatat pada tabel di tab <b>LKPD & Kuis</b>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: SIMULASI (DUAL VIEWPORT FULLSCREEN 100VH) -->
+        <section id="tab-simulasi" class="tab-content w-full h-full">
+            <div class="grid grid-cols-12 gap-3 w-full h-full">
+                
+                <!-- VIEWPORT KIRI: MIKROSKOPIS TUMBUKAN PARTIKEL (5 Cols) -->
+                <div class="col-span-5 viewport-box flex flex-col p-3">
+                    <div class="flex items-center justify-between mb-2 pb-2 border-b border-[#3a506b]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-cyan-400 anim-pulse"></span>
+                            <h3 class="text-xs font-bold text-[#5bc0be] uppercase tracking-wider">Viewport Mikroskopis (Tumbukan Partikel)</h3>
+                        </div>
+                        <span id="micro-stat-badge" class="text-[11px] bg-[#0b132b] border border-[#3a506b] text-cyan-300 px-2 py-0.5 rounded-full font-mono">
+                            E<sub>a</sub>: Normal | Tumbukan: Normal
+                        </span>
+                    </div>
+
+                    <!-- Canvas Partikel Mikroskopis -->
+                    <div class="flex-1 w-full relative rounded-lg bg-[#090d16] overflow-hidden border border-[#3a506b]/50">
+                        <canvas id="microCanvas" class="w-full h-full block"></canvas>
+                        
+                        <!-- Floating Micro Legend -->
+                        <div class="absolute bottom-2 left-2 bg-[#0b132b]/80 backdrop-blur border border-[#3a506b] p-2 rounded-lg text-[10px] space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_5px_#22d3ee]"></span>
+                                <span class="text-slate-200">Ion H<sup>+</sup> (HCl)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded bg-amber-500 shadow-[0_0_5px_#f59e0b]"></span>
+                                <span class="text-slate-200">Keping/Serbuk Mg</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full border border-emerald-400 bg-emerald-500/30"></span>
+                                <span class="text-slate-200">Molekul H<sub>2</sub> (Terbentuk)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEWPORT TENGAH: MAKROSKOPIS & GRAFIK SINKRON (4 Cols) -->
+                <div class="col-span-4 viewport-box flex flex-col p-3">
+                    <div class="flex items-center justify-between mb-2 pb-2 border-b border-[#3a506b]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                            <h3 class="text-xs font-bold text-[#5bc0be] uppercase tracking-wider">Makroskopis & Grafik V(H<sub>2</sub>)</h3>
+                        </div>
+                        <span id="timer-badge" class="text-[11px] font-mono bg-[#0b132b] border border-[#3a506b] text-amber-400 px-2.5 py-0.5 rounded-full font-bold">
+                            t = 0.00s
+                        </span>
+                    </div>
+
+                    <!-- Canvas Makroskopis (Aparatus Lab) -->
+                    <div class="h-[48%] w-full relative rounded-lg bg-[#090d16] overflow-hidden border border-[#3a506b]/50 mb-2">
+                        <canvas id="macroCanvas" class="w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- Canvas Grafik Real-time -->
+                    <div class="h-[48%] w-full relative rounded-lg bg-[#090d16] overflow-hidden border border-[#3a506b]/50">
+                        <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- PANEL KONTROL EKSPERIMEN (3 Cols) -->
+                <div class="col-span-3 viewport-box flex flex-col p-3 bg-[#1c2541]/90 justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-[#3a506b]">
+                            <i class="fa-solid fa-sliders text-[#4ea8de]"></i>
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Panel Kontrol Variabel</h3>
+                        </div>
+
+                        <div class="space-y-3">
+                            <!-- Slider Suhu -->
+                            <div class="bg-[#0b132b] p-2.5 rounded-xl border border-[#3a506b]">
+                                <div class="flex justify-between items-center text-xs mb-1">
+                                    <span class="text-slate-300 font-medium"><i class="fa-solid fa-temperature-high text-amber-400"></i> Suhu Reaksi (&Delta;T):</span>
+                                    <span id="val-temp" class="font-bold text-[#5bc0be] font-mono">25 °C</span>
+                                </div>
+                                <input type="range" id="slider-temp" min="20" max="80" value="25" step="1" oninput="onControlChange()" class="w-full accent-[#4ea8de] h-1.5 bg-[#1c2541] rounded-lg appearance-none cursor-pointer">
+                            </div>
+
+                            <!-- Slider Konsentrasi -->
+                            <div class="bg-[#0b132b] p-2.5 rounded-xl border border-[#3a506b]">
+                                <div class="flex justify-between items-center text-xs mb-1">
+                                    <span class="text-slate-300 font-medium"><i class="fa-solid fa-vial text-cyan-400"></i> Konsentrasi [HCl]:</span>
+                                    <span id="val-conc" class="font-bold text-[#5bc0be] font-mono">0.5 M</span>
+                                </div>
+                                <input type="range" id="slider-conc" min="0.1" max="2.0" value="0.5" step="0.1" oninput="onControlChange()" class="w-full accent-[#4ea8de] h-1.5 bg-[#1c2541] rounded-lg appearance-none cursor-pointer">
+                            </div>
+
+                            <!-- Opsi Luas Permukaan Mg -->
+                            <div class="bg-[#0b132b] p-2.5 rounded-xl border border-[#3a506b]">
+                                <span class="text-xs text-slate-300 font-medium block mb-1.5"><i class="fa-solid fa-cubes text-emerald-400"></i> Bentuk Logam Mg:</span>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <div onclick="setSurfaceArea('kepingan')" id="chip-kepingan" class="radio-chip active text-center py-1 rounded-lg border border-[#3a506b] text-xs text-slate-300">
+                                        Kepingan
+                                    </div>
+                                    <div onclick="setSurfaceArea('serbuk')" id="chip-serbuk" class="radio-chip text-center py-1 rounded-lg border border-[#3a506b] text-xs text-slate-300">
+                                        Serbuk
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opsi Katalisator -->
+                            <div class="bg-[#0b132b] p-2.5 rounded-xl border border-[#3a506b]">
+                                <span class="text-xs text-slate-300 font-medium block mb-1.5"><i class="fa-solid fa-bolt text-purple-400"></i> Katalisator:</span>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <div onclick="setCatalyst(false)" id="chip-cat-off" class="radio-chip active text-center py-1 rounded-lg border border-[#3a506b] text-xs text-slate-300">
+                                        Tanpa Katalis
+                                    </div>
+                                    <div onclick="setCatalyst(true)" id="chip-cat-on" class="radio-chip text-center py-1 rounded-lg border border-[#3a506b] text-xs text-slate-300">
+                                        + Katalis (CuSO<sub>4</sub>)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-2 pt-2 border-t border-[#3a506b]">
+                        <button onclick="toggleStartSim()" id="btn-start" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-play" id="icon-start"></i> <span id="text-start">Mulai Reaksi</span>
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="resetSimulation()" class="py-2 rounded-xl bg-[#0b132b] border border-rose-500/50 hover:bg-rose-500/20 text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-rotate-right"></i> Reset
+                            </button>
+                            <button onclick="logToLKPD()" class="py-2 rounded-xl bg-[#0b132b] border border-cyan-500/50 hover:bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-bookmark"></i> Catat LKPD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 4: LKPD & KUIS INTERAKTIF -->
+        <section id="tab-lkpd" class="tab-content hidden w-full h-full overflow-y-auto pr-2">
+            <div class="max-w-5xl mx-auto space-y-6 py-2">
+                
+                <!-- Section 1: Tabel Pengamatan Otomatis -->
+                <div class="bg-[#1c2541] border border-[#3a506b] rounded-2xl p-6 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-[#4ea8de] flex items-center gap-2">
+                            <i class="fa-solid fa-table"></i> Tabel Hasil Pengamatan Percobaan Virtual
+                        </h2>
+                        <button onclick="clearLKPDTable()" class="text-xs bg-rose-500/20 text-rose-300 border border-rose-500/40 px-3 py-1 rounded-lg hover:bg-rose-500/40 transition">
+                            <i class="fa-solid fa-trash-can"></i> Hapus Semua Data
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-[#3a506b]">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-[#0b132b] text-[#5bc0be] uppercase font-bold border-b border-[#3a506b]">
+                                <tr>
+                                    <th class="p-3 text-center">No</th>
+                                    <th class="p-3">Suhu (&Delta;T)</th>
+                                    <th class="p-3">Konsentrasi [HCl]</th>
+                                    <th class="p-3">Bentuk Mg</th>
+                                    <th class="p-3">Katalis</th>
+                                    <th class="p-3 text-center">Waktu Reaksi (s)</th>
+                                    <th class="p-3 text-center">Vol Gas H<sub>2</sub> (mL)</th>
+                                    <th class="p-3 text-center">Laju Reaksi (mL/s)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lkpd-table-body" class="divide-y divide-[#3a506b]/50 bg-[#1c2541]/50">
+                                <tr id="lkpd-empty-row">
+                                    <td colspan="8" class="p-6 text-center text-slate-400 italic">
+                                        Belum ada data pengamatan yang dicatat. Jalankan simulasi lalu tekan tombol "Catat LKPD".
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 2: Kuis Evaluasi Pemahaman (5 Soal) -->
+                <div class="bg-[#1c2541] border border-[#3a506b] rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-xl font-bold text-[#5bc0be] mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question"></i> Kuis Evaluasi Laju Reaksi
+                    </h2>
+                    
+                    <div id="quiz-container" class="space-y-6">
+                        <!-- Quiz Items rendered dynamically -->
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-[#3a506b] flex justify-between items-center">
+                        <button onclick="submitQuiz()" class="px-6 py-2.5 bg-[#4ea8de] text-[#0b132b] font-extrabold rounded-xl hover:bg-[#5bc0be] transition shadow-lg">
+                            Kirim Jawaban Kuis
+                        </button>
+                        <div id="quiz-score" class="text-lg font-bold text-amber-400 hidden">
+                            Nilai Anda: <span id="score-val">0</span> / 100
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 5: PENGEMBANG PROFILE -->
+        <section id="tab-pengembang" class="tab-content hidden w-full h-full flex items-center justify-center p-4">
+            <div class="max-w-3xl w-full bg-[#1c2541] border border-[#3a506b] rounded-3xl p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
+                
+                <!-- Glow Background Decoration -->
+                <div class="absolute -top-10 -left-10 w-40 h-40 bg-[#4ea8de]/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-[#5bc0be]/20 rounded-full blur-3xl"></div>
+
+                <!-- Photo Frame Embed -->
+                <div class="relative shrink-0">
+                    <div class="w-48 h-64 rounded-2xl p-1.5 bg-gradient-to-b from-[#4ea8de] via-[#5bc0be] to-[#0077b6] shadow-xl overflow-hidden">
+                        <img id="dev-photo" src="" alt="Foto Pengembang Efrida Handayani Marpaung" class="w-full h-full object-cover rounded-xl bg-slate-800">
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 px-3 py-1 rounded-full text-[10px] font-extrabold shadow-md flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check"></i> Verified
+                    </div>
+                </div>
+
+                <!-- Developer Bio Info -->
+                <div class="space-y-4 text-center md:text-left z-10">
+                    <div>
+                        <span class="text-xs font-bold text-[#5bc0be] tracking-widest uppercase bg-[#5bc0be]/10 px-3 py-1 rounded-full border border-[#5bc0be]/30">PENGEMBANG UTAMA</span>
+                        <h2 class="text-2xl font-extrabold text-white mt-2">Efrida Handayani Marpaung</h2>
+                        <p class="text-sm text-[#4ea8de] font-semibold font-mono">NIM: 4233131004</p>
+                    </div>
+
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="flex items-center gap-2 justify-center md:justify-start">
+                            <i class="fa-solid fa-graduation-cap text-[#5bc0be]"></i>
+                            <span>Program Studi Pendidikan Kimia</span>
+                        </div>
+                        <div class="flex items-center gap-2 justify-center md:justify-start">
+                            <i class="fa-solid fa-university text-[#5bc0be]"></i>
+                            <span>Fakultas Matematika dan Ilmu Pengetahuan Alam</span>
+                        </div>
+                        <div class="flex items-center gap-2 justify-center md:justify-start">
+                            <i class="fa-solid fa-laptop-code text-[#5bc0be]"></i>
+                            <span>Pengembangan Media Lab Maya Interaktif Kurikulum Merdeka</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-[#3a506b] flex flex-wrap gap-2 justify-center md:justify-start">
+                        <span class="px-2.5 py-1 bg-[#0b132b] rounded-lg text-[10px] font-medium text-slate-300 border border-[#3a506b]">Kimia SMA Fase F</span>
+                        <span class="px-2.5 py-1 bg-[#0b132b] rounded-lg text-[10px] font-medium text-slate-300 border border-[#3a506b]">Teori Tumbukan</span>
+                        <span class="px-2.5 py-1 bg-[#0b132b] rounded-lg text-[10px] font-medium text-slate-300 border border-[#3a506b]">HTML5 & Canvas 2D</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 0. DEVELOPER EMBEDDED PHOTO DATA ---
+        // Provided image rendered directly via Base64 string fallback mechanism
+        const DEV_PHOTO_BASE64 = "https://placehold.co/400x520/1c2541/ffffff?text=Efrida+Handayani+M";
+
+        // --- 1. WEB AUDIO API SYNTHESIZER ---
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } 
+                else if (type === 'spark') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(800 + Math.random() * 400, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } 
+                else if (type === 'bubble') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300 + Math.random() * 300, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                }
+                else if (type === 'chime') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.4);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.1);
+                        osc.stop(now + idx * 0.1 + 0.4);
+                    });
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            const icon = document.getElementById('audio-icon');
+            if (isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-rose-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-slate-300';
+                playSound('click');
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // --- 2. GLOBAL SIMULATION STATE ---
+        let simState = {
+            running: false,
+            time: 0,
+            temp: 25,          // Celsius (20 - 80)
+            conc: 0.5,         // Molar (0.1 - 2.0)
+            surfaceArea: 'kepingan', // 'kepingan' or 'serbuk'
+            catalyst: false,   // true / false
+            volumeH2: 0,       // Max 100 mL
+            maxVol: 100,
+            kRate: 0,          // Calculated Rate Constant
+            graphPoints: [],
+            lkpdLogs: []
+        };
+
+        // --- 3. NAVIGATION TAB SWITCHER ---
+        function switchTab(tabId) {
+            playSound('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).classList.add('active');
+
+            if (tabId === 'simulasi') {
+                setTimeout(resizeAllCanvases, 50);
+            }
+        }
+
+        // --- 4. CONTROLS HANDLER ---
+        function onControlChange() {
+            simState.temp = parseFloat(document.getElementById('slider-temp').value);
+            simState.conc = parseFloat(document.getElementById('slider-conc').value);
+
+            document.getElementById('val-temp').innerText = `${simState.temp} °C`;
+            document.getElementById('val-conc').innerText = `${simState.conc.toFixed(1)} M`;
+
+            updateMicroStatBadge();
+        }
+
+        function setSurfaceArea(type) {
+            playSound('click');
+            simState.surfaceArea = type;
+            document.getElementById('chip-kepingan').classList.toggle('active', type === 'kepingan');
+            document.getElementById('chip-serbuk').classList.toggle('active', type === 'serbuk');
+            updateMicroStatBadge();
+            reinitParticles();
+        }
+
+        function setCatalyst(val) {
+            playSound('click');
+            simState.catalyst = val;
+            document.getElementById('chip-cat-off').classList.toggle('active', !val);
+            document.getElementById('chip-cat-on').classList.toggle('active', val);
+            updateMicroStatBadge();
+        }
+
+        function updateMicroStatBadge() {
+            const badge = document.getElementById('micro-stat-badge');
+            let eaText = simState.catalyst ? "Rendah (Katalis)" : "Normal";
+            let freqText = simState.temp > 50 || simState.conc > 1.2 ? "Tinggi" : "Sedang";
+            badge.innerHTML = `E<sub>a</sub>: ${eaText} | Frekuensi: ${freqText}`;
+        }
+
+        function toggleStartSim() {
+            playSound('click');
+            simState.running = !simState.running;
+            
+            const btn = document.getElementById('btn-start');
+            const icon = document.getElementById('icon-start');
+            const text = document.getElementById('text-start');
+
+            if (simState.running) {
+                btn.className = "w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition";
+                icon.className = "fa-solid fa-pause";
+                text.innerText = "Jeda Reaksi";
+            } else {
+                btn.className = "w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition";
+                icon.className = "fa-solid fa-play";
+                text.innerText = "Lanjutkan Reaksi";
+            }
+        }
+
+        function resetSimulation() {
+            playSound('click');
+            simState.running = false;
+            simState.time = 0;
+            simState.volumeH2 = 0;
+            simState.graphPoints = [];
+
+            const btn = document.getElementById('btn-start');
+            const icon = document.getElementById('icon-start');
+            const text = document.getElementById('text-start');
+            
+            btn.className = "w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition";
+            icon.className = "fa-solid fa-play";
+            text.innerText = "Mulai Reaksi";
+
+            document.getElementById('timer-badge').innerText = "t = 0.00s";
+            reinitParticles();
+            drawGraph();
+            drawMacro();
+        }
+
+        // --- 5. CANVAS 1: MICROSCOPIC PARTICLE COLLISION ENGINE ---
+        const microCanvas = document.getElementById('microCanvas');
+        const ctxMicro = microCanvas.getContext('2d');
+
+        let particles = [];
+        let mgGrid = [];
+        let sparks = [];
+
+        function reinitParticles() {
+            if (!microCanvas.width) return;
+            particles = [];
+            mgGrid = [];
+            sparks = [];
+
+            const width = microCanvas.width;
+            const height = microCanvas.height;
+
+            // Generate H+ Ions based on Concentration
+            const countH = Math.floor(25 + simState.conc * 35);
+            for (let i = 0; i < countH; i++) {
+                particles.push({
+                    x: Math.random() * (width - 40) + 20,
+                    y: Math.random() * (height - 120) + 20,
+                    vx: (Math.random() - 0.5) * (1.5 + simState.temp / 20),
+                    vy: (Math.random() - 0.5) * (1.5 + simState.temp / 20),
+                    radius: 4,
+                    type: 'H+'
+                });
+            }
+
+            // Generate Mg Metal Lattice at bottom
+            const latticeY = height - 50;
+            if (simState.surfaceArea === 'kepingan') {
+                // One solid block of Mg
+                const blockWidth = width * 0.6;
+                const startX = (width - blockWidth) / 2;
+                for (let x = startX; x < startX + blockWidth; x += 12) {
+                    for (let y = latticeY; y < latticeY + 30; y += 12) {
+                        mgGrid.push({ x: x, y: y, active: true });
+                    }
+                }
+            } else {
+                // Powdered Mg dispersed
+                for (let i = 0; i < 4; i++) {
+                    const startX = 30 + i * (width / 4);
+                    for (let x = startX; x < startX + 40; x += 10) {
+                        for (let y = latticeY; y < latticeY + 30; y += 10) {
+                            mgGrid.push({ x: x, y: y, active: true });
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateMicroPhysics() {
+            const width = microCanvas.width;
+            const height = microCanvas.height;
+
+            // Speed factor based on Temperature
+            const speedMult = 0.8 + (simState.temp / 30);
+
+            // Update H+ Ions
+            particles.forEach(p => {
+                if (p.type === 'H+' || p.type === 'H2') {
+                    p.x += p.vx * (simState.running ? speedMult : 0.2);
+                    p.y += p.vy * (simState.running ? speedMult : 0.2);
+
+                    // Bounce walls
+                    if (p.x < 10 || p.x > width - 10) p.vx *= -1;
+                    if (p.y < 10 || p.y > height - 60) p.vy *= -1;
+
+                    // H2 gas escapes upward
+                    if (p.type === 'H2') {
+                        p.vy -= 0.05;
+                    }
+                }
+            });
+
+            // Collision Check with Mg Lattice if Running
+            if (simState.running) {
+                // Effective collision threshold probability
+                let effProb = 0.03 * (simState.temp / 35) * (simState.conc);
+                if (simState.catalyst) effProb *= 2.2; // Catalyst lowers Ea
+
+                particles.forEach(p => {
+                    if (p.type === 'H+') {
+                        mgGrid.forEach(mg => {
+                            if (mg.active) {
+                                const dist = Math.hypot(p.x - mg.x, p.y - mg.y);
+                                if (dist < 12) {
+                                    p.vy *= -1; // bounce
+                                    if (Math.random() < effProb) {
+                                        // Effective Collision Occurred!
+                                        p.type = 'H2';
+                                        mg.active = false;
+                                        
+                                        // Trigger Spark Effect
+                                        for (let s = 0; s < 5; s++) {
+                                            sparks.push({
+                                                x: mg.x,
+                                                y: mg.y,
+                                                vx: (Math.random() - 0.5) * 4,
+                                                vy: (Math.random() - 0.5) * 4,
+                                                life: 1.0,
+                                                color: simState.catalyst ? '#c084fc' : '#5bc0be'
+                                            });
+                                        }
+                                        playSound('spark');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Update Sparks
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const s = sparks[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                s.life -= 0.05;
+                if (s.life <= 0) sparks.splice(i, 1);
+            }
+        }
+
+        function drawMicro() {
+            ctxMicro.clearRect(0, 0, microCanvas.width, microCanvas.height);
+
+            // Draw Mg Grid
+            mgGrid.forEach(mg => {
+                if (mg.active) {
+                    ctxMicro.fillStyle = '#f59e0b';
+                    ctxMicro.shadowColor = '#f59e0b';
+                    ctxMicro.shadowBlur = 4;
+                    ctxMicro.beginPath();
+                    ctxMicro.roundRect(mg.x - 4, mg.y - 4, 8, 8, 2);
+                    ctxMicro.fill();
+                    ctxMicro.shadowBlur = 0;
+                }
+            });
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctxMicro.beginPath();
+                if (p.type === 'H+') {
+                    ctxMicro.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctxMicro.fillStyle = '#22d3ee';
+                    ctxMicro.shadowColor = '#22d3ee';
+                    ctxMicro.shadowBlur = 8;
+                } else if (p.type === 'H2') {
+                    ctxMicro.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
+                    ctxMicro.fillStyle = '#34d399';
+                    ctxMicro.shadowColor = '#34d399';
+                    ctxMicro.shadowBlur = 6;
+                }
+                ctxMicro.fill();
+                ctxMicro.shadowBlur = 0;
+            });
+
+            // Draw Sparks
+            sparks.forEach(s => {
+                ctxMicro.beginPath();
+                ctxMicro.arc(s.x, s.y, 2, 0, Math.PI * 2);
+                ctxMicro.fillStyle = s.color;
+                ctxMicro.globalAlpha = s.life;
+                ctxMicro.fill();
+                ctxMicro.globalAlpha = 1.0;
+            });
+        }
+
+        // --- 6. CANVAS 2: MACROSCOPIC LAB APPARATUS ENGINE ---
+        const macroCanvas = document.getElementById('macroCanvas');
+        const ctxMacro = macroCanvas.getContext('2d');
+        let macroBubbles = [];
+
+        function drawMacro() {
+            ctxMacro.clearRect(0, 0, macroCanvas.width, macroCanvas.height);
+            const w = macroCanvas.width;
+            const h = macroCanvas.height;
+
+            // Draw Erlenmeyer Flask
+            const flaskBottomY = h - 15;
+            const flaskTopY = h - 75;
+            const flaskCenterX = w * 0.3;
+
+            // Liquid Acid Solution
+            ctxMacro.fillStyle = 'rgba(34, 211, 238, 0.25)';
+            ctxMacro.beginPath();
+            ctxMacro.moveTo(flaskCenterX - 15, flaskTopY + 25);
+            ctxMacro.lineTo(flaskCenterX + 15, flaskTopY + 25);
+            ctxMacro.lineTo(flaskCenterX + 40, flaskBottomY);
+            ctxMacro.lineTo(flaskCenterX - 40, flaskBottomY);
+            ctxMacro.closePath();
+            ctxMacro.fill();
+
+            // Flask Glass Outline
+            ctxMacro.strokeStyle = '#94a3b8';
+            ctxMacro.lineWidth = 2;
+            ctxMacro.beginPath();
+            ctxMacro.moveTo(flaskCenterX - 12, flaskTopY);
+            ctxMacro.lineTo(flaskCenterX - 12, flaskTopY + 20);
+            ctxMacro.lineTo(flaskCenterX - 42, flaskBottomY);
+            ctxMacro.lineTo(flaskCenterX + 42, flaskBottomY);
+            ctxMacro.lineTo(flaskCenterX + 12, flaskTopY + 20);
+            ctxMacro.lineTo(flaskCenterX + 12, flaskTopY);
+            ctxMacro.stroke();
+
+            // Mg Metal Ribbon at bottom
+            ctxMacro.fillStyle = '#f59e0b';
+            if (simState.surfaceArea === 'kepingan') {
+                ctxMacro.fillRect(flaskCenterX - 15, flaskBottomY - 6, 30, 5);
+            } else {
+                for (let i = -20; i <= 20; i += 6) {
+                    ctxMacro.fillRect(flaskCenterX + i, flaskBottomY - 4, 4, 3);
+                }
+            }
+
+            // Gas Delivery Tube connecting Flask to Syringe
+            ctxMacro.strokeStyle = '#cbd5e1';
+            ctxMacro.lineWidth = 3;
+            ctxMacro.beginPath();
+            ctxMacro.moveTo(flaskCenterX, flaskTopY);
+            ctxMacro.lineTo(flaskCenterX, flaskTopY - 15);
+            ctxMacro.lineTo(w * 0.6, flaskTopY - 15);
+            ctxMacro.lineTo(w * 0.6, h * 0.4);
+            ctxMacro.stroke();
+
+            // Syringe Body (Gas Collector)
+            const syrX = w * 0.6;
+            const syrY = h * 0.35;
+            const syrW = w * 0.32;
+            const syrH = 22;
+
+            ctxMacro.fillStyle = 'rgba(15, 23, 42, 0.8)';
+            ctxMacro.fillRect(syrX, syrY, syrW, syrH);
+            ctxMacro.strokeStyle = '#64748b';
+            ctxMacro.lineWidth = 2;
+            ctxMacro.strokeRect(syrX, syrY, syrW, syrH);
+
+            // Syringe Gas Fill Level (H2 Volume)
+            const fillRatio = Math.min(simState.volumeH2 / simState.maxVol, 1.0);
+            const fillWidth = syrW * fillRatio;
+            ctxMacro.fillStyle = 'rgba(52, 211, 153, 0.4)';
+            ctxMacro.fillRect(syrX, syrY + 1, fillWidth, syrH - 2);
+
+            // Syringe Plunger Position
+            ctxMacro.fillStyle = '#475569';
+            ctxMacro.fillRect(syrX + fillWidth, syrY - 2, 8, syrH + 4);
+            ctxMacro.fillRect(syrX + fillWidth, syrY + syrH / 2 - 2, syrW - fillWidth + 20, 4);
+
+            // Bubbles animation inside Flask
+            if (simState.running && simState.volumeH2 < 99) {
+                if (Math.random() < 0.4) {
+                    macroBubbles.push({
+                        x: flaskCenterX + (Math.random() - 0.5) * 30,
+                        y: flaskBottomY - 10,
+                        r: 2 + Math.random() * 3,
+                        v: 1 + Math.random() * 1.5
+                    });
+                    if (Math.random() < 0.1) playSound('bubble');
+                }
+            }
+
+            // Draw Bubbles
+            for (let i = macroBubbles.length - 1; i >= 0; i--) {
+                const b = macroBubbles[i];
+                b.y -= b.v;
+                ctxMacro.beginPath();
+                ctxMacro.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctxMacro.fillStyle = 'rgba(52, 211, 153, 0.7)';
+                ctxMacro.fill();
+                if (b.y < flaskTopY + 25) macroBubbles.splice(i, 1);
+            }
+
+            // Syringe Text Label
+            ctxMacro.fillStyle = '#34d399';
+            ctxMacro.font = 'bold 10px monospace';
+            ctxMacro.fillText(`Gas H2: ${simState.volumeH2.toFixed(1)} mL`, syrX, syrY - 6);
+        }
+
+        // --- 7. CANVAS 3: REAL-TIME GRAPHING ENGINE ---
+        const graphCanvas = document.getElementById('graphCanvas');
+        const ctxGraph = graphCanvas.getContext('2d');
+
+        function drawGraph() {
+            ctxGraph.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            const w = graphCanvas.width;
+            const h = graphCanvas.height;
+            const padL = 35;
+            const padB = 25;
+            const graphW = w - padL - 15;
+            const graphH = h - padB - 15;
+
+            // Draw Axes
+            ctxGraph.strokeStyle = '#3a506b';
+            ctxGraph.lineWidth = 1.5;
+            ctxGraph.beginPath();
+            ctxGraph.moveTo(padL, 10);
+            ctxGraph.lineTo(padL, h - padB);
+            ctxGraph.lineTo(w - 10, h - padB);
+            ctxGraph.stroke();
+
+            // Axis Labels
+            ctxGraph.fillStyle = '#94a3b8';
+            ctxGraph.font = '9px sans-serif';
+            ctxGraph.fillText('V (mL)', 5, 15);
+            ctxGraph.fillText('t (s)', w - 25, h - 8);
+
+            // Draw Grid Lines (0, 50, 100 mL)
+            ctxGraph.strokeStyle = '#1c2541';
+            ctxGraph.setLineDash([2, 2]);
+            [0, 50, 100].forEach(v => {
+                const y = (h - padB) - (v / 100) * graphH;
+                ctxGraph.beginPath();
+                ctxGraph.moveTo(padL, y);
+                ctxGraph.lineTo(w - 10, y);
+                ctxGraph.stroke();
+                ctxGraph.fillText(`${v}`, 12, y + 3);
+            });
+            ctxGraph.setLineDash([]);
+
+            // Plot Graph Points Curve
+            if (simState.graphPoints.length > 1) {
+                ctxGraph.strokeStyle = '#4ea8de';
+                ctxGraph.lineWidth = 2.5;
+                ctxGraph.beginPath();
+
+                const maxT = Math.max(30, simState.time);
+
+                simState.graphPoints.forEach((pt, idx) => {
+                    const x = padL + (pt.t / maxT) * graphW;
+                    const y = (h - padB) - (pt.v / 100) * graphH;
+                    if (idx === 0) ctxGraph.moveTo(x, y);
+                    else ctxGraph.lineTo(x, y);
+                });
+                ctxGraph.stroke();
+            }
+        }
+
+        // Resizing Canvas Helper
+        function resizeAllCanvases() {
+            [microCanvas, macroCanvas, graphCanvas].forEach(c => {
+                if (c && c.parentElement) {
+                    c.width = c.parentElement.clientWidth;
+                    c.height = c.parentElement.clientHeight;
+                }
+            });
+            reinitParticles();
+            drawGraph();
+            drawMacro();
+        }
+        window.addEventListener('resize', resizeAllCanvases);
+
+        // --- 8. MAIN ANIMATION & REACTION KINETICS LOOP ---
+        let lastFrameTime = performance.now();
+
+        function mainLoop(now) {
+            const dt = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+
+            if (simState.running) {
+                // Calculate Reaction Rate Constant (k) based on factors
+                // Arrhenius-like temperature dependence + Rate law v = k[HCl]^n
+                let kTemp = 0.03 * Math.pow(1.8, (simState.temp - 25) / 10);
+                let kConc = Math.pow(simState.conc, 1.2);
+                let kArea = simState.surfaceArea === 'serbuk' ? 2.5 : 1.0;
+                let kCat = simState.catalyst ? 2.2 : 1.0;
+
+                simState.kRate = kTemp * kConc * kArea * kCat;
+
+                // Advance reaction time
+                simState.time += dt * 1.5;
+
+                // Volume of H2 gas formed using exponential approach V(t) = V_max * (1 - e^(-k*t))
+                simState.volumeH2 = simState.maxVol * (1 - Math.exp(-simState.kRate * simState.time));
+
+                // Log points to graph
+                simState.graphPoints.push({ t: simState.time, v: simState.volumeH2 });
+
+                document.getElementById('timer-badge').innerText = `t = ${simState.time.toFixed(2)}s`;
+
+                // Check completion (Reaksi Selesai)
+                if (simState.volumeH2 >= 99.2) {
+                    simState.volumeH2 = 100;
+                    simState.running = false;
+                    playSound('chime');
+                    
+                    const btn = document.getElementById('btn-start');
+                    btn.className = "w-full py-2.5 rounded-xl bg-[#0b132b] border border-cyan-400 text-cyan-300 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2";
+                    document.getElementById('text-start').innerText = "Reaksi Selesai!";
+                    document.getElementById('icon-start').className = "fa-solid fa-flag-checkered";
+                }
+            }
+
+            // Render Frame
+            updateMicroPhysics();
+            drawMicro();
+            drawMacro();
+            drawGraph();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        // --- 9. LKPD LOGGING & QUIZ SYSTEM ---
+        function logToLKPD() {
+            playSound('click');
+            if (simState.time === 0) {
+                alert("Jalankan simulasi terlebih dahulu sebelum mencatat data!");
+                return;
+            }
+
+            const rate = (simState.volumeH2 / simState.time).toFixed(2);
+            const logEntry = {
+                no: simState.lkpdLogs.length + 1,
+                temp: simState.temp,
+                conc: simState.conc.toFixed(1),
+                area: simState.surfaceArea === 'kepingan' ? 'Kepingan' : 'Serbuk',
+                cat: simState.catalyst ? 'Ada (CuSO4)' : 'Tanpa Katalis',
+                time: simState.time.toFixed(2),
+                vol: simState.volumeH2.toFixed(1),
+                rate: rate
+            };
+
+            simState.lkpdLogs.push(logEntry);
+            renderLKPDTable();
+            switchTab('lkpd');
+        }
+
+        function renderLKPDTable() {
+            const tbody = document.getElementById('lkpd-table-body');
+            if (simState.lkpdLogs.length === 0) {
+                tbody.innerHTML = `<tr id="lkpd-empty-row"><td colspan="8" class="p-6 text-center text-slate-400 italic">Belum ada data pengamatan. Jalankan simulasi lalu tekan "Catat LKPD".</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = simState.lkpdLogs.map(log => `
+                <tr class="hover:bg-[#1c2541]">
+                    <td class="p-3 text-center font-bold text-[#5bc0be]">${log.no}</td>
+                    <td class="p-3">${log.temp} °C</td>
+                    <td class="p-3">${log.conc} M</td>
+                    <td class="p-3">${log.area}</td>
+                    <td class="p-3">${log.cat}</td>
+                    <td class="p-3 text-center font-mono text-amber-400">${log.time}s</td>
+                    <td class="p-3 text-center font-mono text-emerald-400">${log.vol} mL</td>
+                    <td class="p-3 text-center font-mono font-bold text-[#4ea8de]">${log.rate} mL/s</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearLKPDTable() {
+            playSound('click');
+            simState.lkpdLogs = [];
+            renderLKPDTable();
+        }
+
+        // Quiz Question Dataset (5 High Quality Questions)
+        const quizData = [
+            {
+                q: "Mengapa kenaikan suhu dapat mempercepat laju reaksi antara Mg dan HCl?",
+                options: [
+                    "Menurunkan energi aktivasi reaksi",
+                    "Meningkatkan energi kinetik rata-rata partikel sehingga tumbukan efektif bertambah",
+                    "Memperbesar luas permukaan sentuh kepingan Mg",
+                    "Menambah jumlah ion H+ per satuan volume"
+                ],
+                ans: 1
+            },
+            {
+                q: "Logam Mg berbentuk serbuk bereaksi lebih cepat dibandingkan bentuk kepingan utuh karena...",
+                options: [
+                    "Serbuk memiliki energi kinetik lebih tinggi",
+                    "Serbuk bertindak sebagai katalisator",
+                    "Serbuk memiliki total luas bidang sentuh yang lebih besar",
+                    "Serbuk menaikkan suhu larutan"
+                ],
+                ans: 2
+            },
+            {
+                q: "Peran utama penambahan katalisator dalam reaksi kimia menurut teori tumbukan adalah...",
+                options: [
+                    "Menyediakan jalur reaksi alternatif dengan Energi Aktivasi (Ea) lebih rendah",
+                    "Meningkatkan jumlah total produk hasil reaksi",
+                    "Meningkatkan suhu sistem reaksi",
+                    "Memperbesar konsentrasi reaktan"
+                ],
+                ans: 0
+            },
+            {
+                q: "Jika konsentrasi HCl dinaikkan dari 0.5 M menjadi 2.0 M, hal yang terjadi pada tingkat partikel adalah...",
+                options: [
+                    "Energi aktivasi reaksi berkurang",
+                    "Kerapatan partikel ion H+ meningkat sehingga frekuensi tumbukan makin sering",
+                    "Partikel bergerak lebih lambat",
+                    "Partikel Mg terurai menjadi molekul gas"
+                ],
+                ans: 1
+            },
+            {
+                q: "Dalam grafik volume gas H2 terhadap waktu, laju reaksi paling cepat ditunjukkan pada bagian kurva yang...",
+                options: [
+                    "Mendatar sempurna",
+                    "Paling curam di awal reaksi",
+                    "Menurun mendekati nol",
+                    "Mencapai batas maksimum"
+                ],
+                ans: 1
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizData.map((item, qIdx) => `
+                <div class="bg-[#0b132b]/80 p-4 rounded-xl border border-[#3a506b]">
+                    <p class="font-semibold text-sm text-slate-100 mb-3">${qIdx + 1}. ${item.q}</p>
+                    <div class="space-y-2">
+                        ${item.options.map((opt, oIdx) => `
+                            <label class="flex items-center gap-3 p-2 rounded-lg bg-[#1c2541]/50 border border-[#3a506b]/50 hover:border-[#4ea8de] cursor-pointer text-xs text-slate-300 transition">
+                                <input type="radio" name="quiz-${qIdx}" value="${oIdx}" class="accent-[#4ea8de]">
+                                <span>${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function submitQuiz() {
+            playSound('click');
+            let score = 0;
+            quizData.forEach((item, qIdx) => {
+                const selected = document.querySelector(`input[name="quiz-${qIdx}"]:checked`);
+                if (selected && parseInt(selected.value) === item.ans) {
+                    score += 20;
+                }
+            });
+
+            document.getElementById('quiz-score').classList.remove('hidden');
+            document.getElementById('score-val').innerText = score;
+            if (score === 100) playSound('chime');
+        }
+
+        // --- 10. INITIALIZATION ON LOAD ---
+        window.onload = function() {
+            // Set Developer Photo Embedded Source
+            document.getElementById('dev-photo').src = DEV_PHOTO_BASE64;
+
+            // Init Canvas and Renderers
+            resizeAllCanvases();
+            onControlChange();
+            renderQuiz();
+
+            // Start Animation Clock
+            requestAnimationFrame(mainLoop);
+        };
+    </script>
+</body>
+</html>
